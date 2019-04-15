@@ -21,8 +21,9 @@ func Run(hostBind string) {
 }
 
 func forward(w http.ResponseWriter, r *http.Request) {
+	// 处理夸域请求
 	corsHandle(w, r)
-
+	// 假如请求方法为OPTIONS直接返回204状态码
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusNoContent)
 		return
