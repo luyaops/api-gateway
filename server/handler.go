@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
@@ -20,18 +21,21 @@ import (
 
 func handleForward(ctx context.Context, req *http.Request) (proto.Message, error) {
 	body, err := ioutil.ReadAll(req.Body)
-	//body will be consumed again
+	// 获取请求体
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	if err != nil {
 		log.Debug("raw body:", string(body))
 		return nil, err
 	}
-
+	// 从存储的URL中获取对应的信息
+	fmt.Println(req.Method)
+	fmt.Println(req.URL.Path)
 	sm, err := searchMethod(req.Method, req.URL.Path)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("GetInputType", sm.Method.GetInputType())
+	fmt.Println("GetOutputType", sm.Method.GetOutputType())
 	in := protoMessage(sm.Method.GetInputType())
 	out := protoMessage(sm.Method.GetOutputType())
 
@@ -44,6 +48,9 @@ func handleForward(ctx context.Context, req *http.Request) (proto.Message, error
 	}
 	//sm.package represent for service name by default
 	endpoint := sm.Package + ":" + constants.RpcServerPort
+	fmt.Println("endpoint:", endpoint)
+	fullMethods := "/" + sm.Package + "." + sm.Service + "/" + *sm.Method.Name
+	fmt.Println("fullMethod:", fullMethods)
 	rpcConn, err := grpc.Dial(endpoint, grpc.WithBlock(), grpc.WithInsecure())
 	if err != nil {
 		log.Error(err)
@@ -51,6 +58,7 @@ func handleForward(ctx context.Context, req *http.Request) (proto.Message, error
 	}
 	defer rpcConn.Close()
 	fullMethod := "/" + sm.Package + "." + sm.Service + "/" + *sm.Method.Name
+	fmt.Println("fullMethod:", fullMethod)
 	//if err = rpcConn.Invoke(attachMD(ctx, req, sm.Options), fullMethod, in, out); err != nil {
 	if err = rpcConn.Invoke(ctx, fullMethod, in, out); err != nil {
 		return nil, err
@@ -68,7 +76,6 @@ func searchMethod(method, path string) (*types.MatchedMethod, error) {
 }
 
 func protoMessage(messageTypeName string) proto.Message {
-	typeName := strings.TrimLeft(messageTypeName, ".")
-	messageType := proto.MessageType(typeName)
+	messageType := proto.MessageType(messageTypeName)
 	return reflect.New(messageType.Elem()).Interface().(proto.Message)
 }
