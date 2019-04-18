@@ -2,7 +2,7 @@ package server
 
 import (
 	"encoding/json"
-	"luyaops/fw/common/grpcstatus"
+	"github.com/luyaops/fw/common/grpcstatus"
 	"net/http"
 
 	"google.golang.org/grpc/codes"

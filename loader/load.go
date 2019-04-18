@@ -2,10 +2,10 @@ package loader
 
 import (
 	"encoding/json"
-	"luyaops/api-gateway/types"
-	_ "luyaops/example/proto"
-	"luyaops/fw/common/etcd"
-	"luyaops/fw/common/log"
+	"github.com/luyaops/api-gateway/types"
+	_ "github.com/luyaops/example/proto"
+	"github.com/luyaops/fw/common/etcd"
+	"github.com/luyaops/fw/common/log"
 )
 
 var RuleStore = make(types.RuleStore)
@@ -21,7 +21,7 @@ const (
 func load(etcdAddr string) {
 	var methods []types.MethodWrapper
 	client := etcd.NewStore(etcdAddr)
-	say, _ := client.Get("say")
+	say, _ := client.Get("example")
 	for _, v := range say.Kvs {
 		err := json.Unmarshal(v.Value, &methods)
 		if err != nil {
@@ -35,7 +35,7 @@ func load(etcdAddr string) {
 	for _, md := range methods {
 		//key := md.Pattern.Verb + ":" + md.Pattern.Path
 		key := md.Pattern.Verb + ":/" + API + md.Pattern.Path
-		log.Debug(key, "-->", md.Service, ".", *md.Method.Name)
+		log.Debug(key, " --> ", md.Service, ".", *md.Method.Name)
 		RuleStore[key] = md
 	}
 }

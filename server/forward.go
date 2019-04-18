@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
-	"luyaops/fw/common/grpcstatus"
-	"luyaops/fw/common/log"
+	"github.com/luyaops/fw/common/grpcstatus"
+	"github.com/luyaops/fw/common/log"
 	"net/http"
 	"time"
 
-	"github.com/gogo/protobuf/jsonpb"
+	//"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc/status"
 )
 
@@ -38,11 +38,11 @@ func forward(w http.ResponseWriter, r *http.Request) {
 			DefaultErrorHandler(w, status.Message(), status.Code())
 		}
 	} else {
-		marshaler := jsonpb.Marshaler{EmitDefaults: true}
-		if err := marshaler.Marshal(w, msg); err != nil {
-			log.Error(err)
-		}
-		//w.Write(bytes)
+		//marshaler := jsonpb.Marshaler{EmitDefaults: true}
+		//if err := marshaler.Marshal(w, msg); err != nil {
+		//	log.Error(err)
+		//}
+		w.Write(msg)
 	}
 }
 

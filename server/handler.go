@@ -3,23 +3,26 @@ package server
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
+	"github.com/luyaops/api-gateway/loader"
+	"github.com/luyaops/api-gateway/types"
+	"github.com/luyaops/fw/common/constants"
+	"github.com/luyaops/fw/common/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/status"
 	"io/ioutil"
-	"luyaops/api-gateway/loader"
-	"luyaops/api-gateway/types"
-	"luyaops/fw/common/constants"
-	"luyaops/fw/common/log"
+	"math"
 	"net/http"
 	"reflect"
 	"strings"
 )
 
-func handleForward(ctx context.Context, req *http.Request) (proto.Message, error) {
+func handleForward(ctx context.Context, req *http.Request) (json.RawMessage, error) {
 	body, err := ioutil.ReadAll(req.Body)
 	// 获取请求体
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
@@ -37,7 +40,8 @@ func handleForward(ctx context.Context, req *http.Request) (proto.Message, error
 	fmt.Println("GetInputType", sm.Method.GetInputType())
 	fmt.Println("GetOutputType", sm.Method.GetOutputType())
 	in := protoMessage(sm.Method.GetInputType())
-	out := protoMessage(sm.Method.GetOutputType())
+	//out := protoMessage(sm.Method.GetOutputType())
+	out := json.RawMessage{}
 
 	json := mergeToBody(string(body), sm.MergeValues, req, in)
 	log.Debug(json)
@@ -57,10 +61,12 @@ func handleForward(ctx context.Context, req *http.Request) (proto.Message, error
 		return nil, err
 	}
 	defer rpcConn.Close()
+	encoding.RegisterCodec()
 	fullMethod := "/" + sm.Package + "." + sm.Service + "/" + *sm.Method.Name
 	fmt.Println("fullMethod:", fullMethod)
+	callOptions := []grpc.CallOption{grpc.CallContentSubtype("mux"), grpc.WaitForReady(false), grpc.MaxCallRecvMsgSize(math.MaxInt32), grpc.MaxCallSendMsgSize(math.MaxInt32)}
 	//if err = rpcConn.Invoke(attachMD(ctx, req, sm.Options), fullMethod, in, out); err != nil {
-	if err = rpcConn.Invoke(ctx, fullMethod, in, out); err != nil {
+	if err = rpcConn.Invoke(ctx, fullMethod, in, &out, callOptions...); err != nil {
 		return nil, err
 	}
 	return out, nil

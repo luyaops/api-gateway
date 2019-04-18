@@ -1,7 +1,7 @@
 package types
 
 import (
-	"luyaops/fw/common/log"
+	"github.com/luyaops/fw/common/log"
 	"net/url"
 	"strings"
 )

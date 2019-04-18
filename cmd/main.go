@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"luyaops/api-gateway/loader"
-	"luyaops/api-gateway/server"
-	"luyaops/fw/common/log"
+	"github.com/luyaops/api-gateway/loader"
+	"github.com/luyaops/api-gateway/server"
+	"github.com/luyaops/fw/common/log"
 	"os"
 )
 
@@ -20,11 +20,11 @@ func init() {
 	var isHelp bool
 	flag.StringVar(&hostBind, "bind", ":8080", "Bind Address")
 	flag.StringVar(&etcdAddr, "etcdAddr", "localhost:2379", "Etcd Address")
-	flag.StringVar(&logLevel, "logLevel", "debug", "Log Level")
+	flag.StringVar(&logLevel, "logLevel", "debug", "Log Level: debug info warn error fatal")
 	flag.BoolVar(&isHelp, "help", false, "Print this help")
 	flag.Parse()
 
-	log.SetLevel(logLevel)
+	log.SetLoggerLevel(logLevel)
 	if isHelp {
 		showHelp()
 	}
