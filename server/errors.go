@@ -2,11 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/luyaops/fw/common/grpcstatus"
+	"github.com/luyaops/fw/common/log"
 	"net/http"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 )
 
 // HTTPStatusFromCode converts a gRPC error code into the corresponding HTTP response status.
@@ -46,11 +45,11 @@ func HTTPStatusFromCode(code codes.Code) int {
 		return http.StatusServiceUnavailable
 	case codes.DataLoss:
 		return http.StatusInternalServerError
-	case grpcstatus.StatusMoved:
+	case codes.Code(10031):
 		return http.StatusFound
 	}
 
-	grpclog.Printf("Unknown gRPC error code: %v", code)
+	log.Info("Unknown gRPC error code: %v", code)
 	return http.StatusInternalServerError
 }
 

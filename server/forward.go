@@ -3,13 +3,12 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/luyaops/fw/common/grpcstatus"
+	"github.com/gogo/protobuf/jsonpb"
 	"github.com/luyaops/fw/common/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"net/http"
 	"time"
-
-	"github.com/gogo/protobuf/jsonpb"
-	"google.golang.org/grpc/status"
 )
 
 func Run(hostBind string) {
@@ -32,7 +31,7 @@ func forward(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status, _ := status.FromError(err)
 		switch status.Code() {
-		case grpcstatus.StatusMoved:
+		case codes.Code(10031):
 			http.Redirect(w, r, status.Message(), http.StatusFound)
 		default:
 			DefaultErrorHandler(w, status.Message(), status.Code())
