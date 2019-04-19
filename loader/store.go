@@ -1,16 +1,33 @@
-package types
+package loader
 
 import (
 	"github.com/luyaops/fw/common/log"
+	"github.com/luyaops/fw/core"
 	"net/url"
 	"strings"
 )
 
-type RuleStore map[string]MethodWrapper
+type RuleStore map[string]core.MethodWrapper
 
-func (rs RuleStore) Match(key string) *MatchedMethod {
+type PrecisionSet []*core.MatchedMethod
+
+func (pq *PrecisionSet) Max() *core.MatchedMethod {
+	if pq == nil || *pq == nil {
+		return nil
+	}
+	max := new(core.MatchedMethod)
+	for i := 0; i < len(*pq); i++ {
+		current := (*pq)[i]
+		if max.Precision < current.Precision {
+			max = current
+		}
+	}
+	return max
+}
+
+func (rs RuleStore) Match(key string) *core.MatchedMethod {
 	if v, ok := rs[key]; ok {
-		return &MatchedMethod{MethodWrapper: v}
+		return &core.MatchedMethod{MethodWrapper: v}
 	}
 	ps := new(PrecisionSet)
 	paths := strings.Split(key, "/")
@@ -31,7 +48,7 @@ func (rs RuleStore) Match(key string) *MatchedMethod {
 					goto NextLoop
 				}
 			}
-			method := MatchedMethod{Precision: precision, MergeValues: values, MethodWrapper: methodWrapper}
+			method := core.MatchedMethod{Precision: precision, MergeValues: values, MethodWrapper: methodWrapper}
 			log.Debug(method)
 			*ps = append(*ps, &method)
 		}

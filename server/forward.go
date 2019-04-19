@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	//"github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc/status"
 )
 
@@ -16,7 +16,7 @@ func Run(hostBind string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", forward)
 
-	log.Info("Listening on " + hostBind)
+	log.Infof("Listening on %v", hostBind)
 	log.Fatal(http.ListenAndServe(hostBind, mux))
 }
 
@@ -38,11 +38,11 @@ func forward(w http.ResponseWriter, r *http.Request) {
 			DefaultErrorHandler(w, status.Message(), status.Code())
 		}
 	} else {
-		//marshaler := jsonpb.Marshaler{EmitDefaults: true}
-		//if err := marshaler.Marshal(w, msg); err != nil {
-		//	log.Error(err)
-		//}
-		w.Write(msg)
+		marshaler := jsonpb.Marshaler{EmitDefaults: true}
+		if err := marshaler.Marshal(w, msg); err != nil {
+			log.Error(err)
+		}
+		//w.Write(msg)
 	}
 }
 

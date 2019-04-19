@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	log.Info("API-Gateway Start...")
+	log.Info("API gateway start")
 	loader.Services(config.Endpoints)
 	server.Run(config.GatewayBind)
 }
